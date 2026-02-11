@@ -1,4 +1,5 @@
 import { ArrowRight, Github } from 'lucide-react'
+import Link from 'next/link'
 
 export default function Hero() {
   return (
@@ -24,9 +25,10 @@ export default function Hero() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="flex items-center justify-center gap-2 px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition font-semibold">
+              <button  className="flex items-center justify-center gap-2 px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition font-semibold">
                 <Github size={20} />
-                Connect GitHub
+                
+                <Link href="/analyzer">Connect GitHub</Link>
               </button>
               <button className="flex items-center justify-center gap-2 px-8 py-3 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition font-semibold">
                 Watch Demo

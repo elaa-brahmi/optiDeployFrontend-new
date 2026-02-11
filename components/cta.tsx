@@ -1,4 +1,5 @@
 import { ArrowRight, CheckCircle2 } from 'lucide-react'
+import Link from 'next/link'
 
 export default function CTA() {
   return (
@@ -15,7 +16,8 @@ export default function CTA() {
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
           <button className="flex items-center justify-center gap-2 px-8 py-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition font-semibold text-lg">
-            Scan Your Repo Now
+                          <Link href="/analyzer">Scan Your Repo Now</Link>
+            
             <ArrowRight size={22} />
           </button>
           <button className="flex items-center justify-center gap-2 px-8 py-4 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition font-semibold text-lg">

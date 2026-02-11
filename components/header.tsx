@@ -1,6 +1,7 @@
 'use client'
 
 import { Menu, X } from 'lucide-react'
+import Link from 'next/link'
 import { useState } from 'react'
 
 export default function Header() {
@@ -24,34 +25,36 @@ export default function Header() {
         </button>
 
         <div className="hidden md:flex items-center gap-8">
-          <a href="#workflow" className="text-muted-foreground hover:text-foreground transition">
+          <a href="/#workflow" className="text-muted-foreground hover:text-foreground transition">
             How it works
           </a>
-          <a href="#features" className="text-muted-foreground hover:text-foreground transition">
+          <a href="/#features" className="text-muted-foreground hover:text-foreground transition">
             Features
           </a>
-          <a href="#" className="text-muted-foreground hover:text-foreground transition">
+          <a href="/#" className="text-muted-foreground hover:text-foreground transition">
             Pricing
           </a>
           <button className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition font-medium">
-            Get Started
+          <Link href="/analyzer">Get Started</Link>
+            
           </button>
         </div>
 
         {isOpen && (
           <div className="absolute top-full left-0 right-0 bg-card border-b border-border md:hidden">
             <div className="flex flex-col gap-4 p-4">
-              <a href="#workflow" className="text-muted-foreground hover:text-foreground">
+              <a href="/#workflow" className="text-muted-foreground hover:text-foreground">
                 How it works
               </a>
-              <a href="#features" className="text-muted-foreground hover:text-foreground">
+              <a href="/#features" className="text-muted-foreground hover:text-foreground">
                 Features
               </a>
-              <a href="#" className="text-muted-foreground hover:text-foreground">
+              <a href="/#" className="text-muted-foreground hover:text-foreground">
                 Pricing
               </a>
               <button className="w-full px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90">
-                Get Started
+                          <Link href="/analyzer">Get Started</Link>
+
               </button>
             </div>
           </div>

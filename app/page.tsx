@@ -4,16 +4,15 @@ import Workflow from '@/components/workflow'
 import Features from '@/components/features'
 import CTA from '@/components/cta'
 import Footer from '@/components/footer'
+import RootLayout from '@/components/dashboard/RootLayout'
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-background">
-      <Header />
       <Hero />
       <Workflow />
       <Features />
       <CTA />
-      <Footer />
     </main>
   )
 }
