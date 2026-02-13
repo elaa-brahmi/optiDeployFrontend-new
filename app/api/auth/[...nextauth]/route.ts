@@ -11,16 +11,37 @@ const handler = NextAuth({
       },
     }),
   ],
+  secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    async jwt({ token, account }) {
-      if (account) {
-        token.accessToken = account.access_token;
+    async jwt({ token, user, profile, account }) {
+      if (account && profile) {
+        // 'profile.id' is the GitHub Numerical ID 
+        token.githubId = profile.id.toString();
       }
       return token;
     },
     async session({ session, token }: any) {
-      session.accessToken = token.accessToken;
-      return session;
+      session.user.id = token.githubId;
+      return session
+    },
+    async signIn({ user, account }: any) {
+
+      try {
+        fetch(`${process.env.BACKEND_URL}/api/auth/sync-user`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            githubId: user.id,
+            email: user.email,
+            name: user.name,
+            accessToken: account.access_token,
+          }),
+        }).catch(err => console.error("Async Sync Failed:", err));
+
+        return true; //prevent timeout
+      } catch (error) {
+        return true;
+      }
     },
   },
 });
