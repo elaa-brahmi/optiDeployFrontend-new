@@ -5,9 +5,15 @@ import { AlertTriangle, Lightbulb, ShieldCheck, Terminal } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export default function ReportView({ report }: { report: any }) {
+    const lastUpdated = new Date(report.updatedAt || report.createdAt).toLocaleString();
   return (
     <div className="max-h-[80vh] overflow-y-auto p-6 space-y-8 text-foreground">
       {/* Header & Score */}
+      <div className="flex justify-between items-start border-b pb-4">
+        <div className="text-xs text-muted-foreground">
+          Last Analysis: {lastUpdated}
+        </div>
+      </div>
       <div className="flex items-center justify-between border-b pb-6">
         <div>
           <h2 className="text-3xl font-bold">Audit Report</h2>

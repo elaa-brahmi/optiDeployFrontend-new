@@ -132,19 +132,29 @@ export default function RepoCard({ repo }: { repo: GitHubRepo }) {
           {/* Conditional Button Logic */}
           {reportData ? (
             <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 gap-2 border-primary/20 text-primary hover:bg-primary/10">
-                  <FileText className="h-3.5 w-3.5" />
-                  Show Report
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="sm:max-w-[700px] w-full p-0">
-                <SheetHeader className="p-6 border-b">
-                   <SheetTitle>Repository Audit: {repo.name}</SheetTitle>
-                </SheetHeader>
-                <ReportView report={reportData} />
-              </SheetContent>
-            </Sheet>
+      <SheetTrigger asChild>
+        <Button variant="outline" size="sm" className="h-8 gap-2">
+          <FileText className="h-3.5 w-3.5" />
+          Show Report
+        </Button>
+      </SheetTrigger>
+      <SheetContent className="sm:max-w-[700px] w-full p-0">
+        <SheetHeader className="p-6 border-b flex flex-row items-center justify-between">
+           <SheetTitle>Audit: {repo.name}</SheetTitle>
+           {/* RE-ANALYZE BUTTON INSIDE SHEET */}
+           <Button 
+             onClick={handleAnalyze} 
+             disabled={isAnalyzing}
+             variant="secondary"
+             size="sm"
+             className="mr-6"
+           >
+             {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : "Re-scan Code"}
+           </Button>
+        </SheetHeader>
+        <ReportView report={reportData} />
+      </SheetContent>
+    </Sheet>
           ) : (
             <Button
               onClick={handleAnalyze}
