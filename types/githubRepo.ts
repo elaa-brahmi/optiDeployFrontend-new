@@ -1,16 +1,21 @@
 export interface GitHubRepo {
-  id: number;
+  _id?: string;          // MongoDB internal ID
+  userId: string;        // The user's GitHub ID
+  repoId: number;        // GitHub's internal repository ID
   name: string;
   owner: string;
-  ownerAvatar: string;
   description: string;
   language: string;
   stars: number;
-  openIssues: number;
-  lastUpdated: string;
   htmlUrl: string;
-  status: 'ready' | 'warning' | 'critical';
-  visibility: 'public' | 'private';
-  coverage?: number; // Optional, will be added after scanning
-  issues?: number; // Optional, will be added after scanning
+  
+  // Scoring and Scanning
+  productionScore: number; 
+  lastScan: string | Date;
+  addedAt: string | Date;
+
+  // UI-specific or Optional fields
+  ownerAvatar?: string;
+  openIssues?: number;
+  visibility?: 'public' | 'private';
 }
