@@ -1,22 +1,9 @@
 import { CheckCircle2, AlertCircle, AlertTriangle, Code2, Calendar, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { GitHubRepo } from '@/types/githubRepo'
 
-interface RepoCardProps {
-  repo: {
-    id: number
-    name: string
-    owner: string
-    language: string
-    stars: number
-    description: string
-    status: 'ready' | 'warning' | 'critical'
-    lastUpdated: string
-    coverage: number
-    issues: number
-  }
-}
 
-export default function RepoCard({ repo }: RepoCardProps) {
+export default function RepoCard({ repo }: { repo: GitHubRepo }) {
   const statusConfig = {
     ready: {
       icon: CheckCircle2,
@@ -38,16 +25,16 @@ export default function RepoCard({ repo }: RepoCardProps) {
     },
   }
 
-  const status = statusConfig[repo.status]
-  const StatusIcon = status.icon
+  /* const status = statusConfig[repo.status]
+  const StatusIcon = status.icon */
 
   return (
     <div className="group relative rounded-lg border border-border bg-card transition hover:border-primary/50 hover:bg-card/80">
       {/* Status Badge */}
-      <div className={`absolute right-4 top-4 flex items-center gap-1.5 rounded-full px-3 py-1 ${status.bgColor}`}>
+     {/*  <div className={`absolute right-4 top-4 flex items-center gap-1.5 rounded-full px-3 py-1 ${status.bgColor}`}>
         <StatusIcon className={`h-4 w-4 ${status.color}`} />
         <span className={`text-xs font-medium ${status.color}`}>{status.label}</span>
-      </div>
+      </div> */}
 
       <div className="space-y-4 p-5">
         {/* Header */}
