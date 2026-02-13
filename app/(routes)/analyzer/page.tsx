@@ -1,176 +1,179 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, ChevronRight, CheckCircle2, AlertCircle, Clock, GitBranch, Code2, Calendar } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { Search, Loader2, Plus, Github, FolderKanban } from 'lucide-react'
 import RepoCard from '@/components/dashboard/repo-card'
-import DashboardStats from '@/components/dashboard/dashboard-stats'
-import FilterBar from '@/components/dashboard/filter-bar'
-import RootLayout from '@/components/dashboard/RootLayout'
-
-const mockRepos = [
-  {
-    id: 1,
-    name: 'api-server',
-    owner: 'Your Organization',
-    language: 'TypeScript',
-    stars: 245,
-    description: 'Production API server with REST endpoints',
-    status: 'ready',
-    lastUpdated: '2 hours ago',
-    coverage: 92,
-    issues: 0,
-  },
-  {
-    id: 2,
-    name: 'web-dashboard',
-    owner: 'Your Organization',
-    language: 'React',
-    stars: 156,
-    description: 'Admin dashboard for monitoring',
-    status: 'warning',
-    lastUpdated: '1 day ago',
-    coverage: 78,
-    issues: 3,
-  },
-  {
-    id: 3,
-    name: 'mobile-app',
-    owner: 'Your Organization',
-    language: 'React Native',
-    stars: 89,
-    description: 'Cross-platform mobile application',
-    status: 'ready',
-    lastUpdated: '3 hours ago',
-    coverage: 85,
-    issues: 0,
-  },
-  {
-    id: 4,
-    name: 'data-pipeline',
-    owner: 'Your Organization',
-    language: 'Python',
-    stars: 312,
-    description: 'ETL pipeline for data processing',
-    status: 'critical',
-    lastUpdated: '5 days ago',
-    coverage: 45,
-    issues: 7,
-  },
-  {
-    id: 5,
-    name: 'auth-service',
-    owner: 'Your Organization',
-    language: 'Go',
-    stars: 198,
-    description: 'OAuth 2.0 authentication service',
-    status: 'ready',
-    lastUpdated: '12 hours ago',
-    coverage: 88,
-    issues: 1,
-  },
-  {
-    id: 6,
-    name: 'docs-site',
-    owner: 'Your Organization',
-    language: 'MDX',
-    stars: 67,
-    description: 'API documentation and guides',
-    status: 'ready',
-    lastUpdated: '2 weeks ago',
-    coverage: 100,
-    issues: 0,
-  },
-]
+import { extractRepoFields } from '@/utils/dataSanitizer'
+import { GitHubRepo } from '@/types/githubRepo'
 
 export default function Dashboard() {
+  const { data: session } = useSession()
+
+  const [projects, setProjects] = useState<GitHubRepo[]>([])
+
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedStatus, setSelectedStatus] = useState('all')
-  const [sortBy, setSortBy] = useState('updated')
+  const [searchResults, setSearchResults] = useState<GitHubRepo[]>([])
 
-  const filtered = mockRepos.filter((repo) => {
-    const matchesSearch =
-      repo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      repo.description.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = selectedStatus === 'all' || repo.status === selectedStatus
-    return matchesSearch && matchesStatus
-  })
+  const [isLoadingProjects, setIsLoadingProjects] = useState(true)
+  const [isSearching, setIsSearching] = useState(false)
+  const [isImporting, setIsImporting] = useState<number | null>(null)
 
-  const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === 'updated') {
-      return b.lastUpdated.localeCompare(a.lastUpdated)
+  useEffect(() => {
+    const fetchSavedProjects = async () => {
+      if (!session?.user?.id) return
+      try {
+        setIsLoadingProjects(true)
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/repos/projects/${session.user.id}`)
+        if (res.ok) {
+          const data = await res.json()
+          setProjects(data.map(extractRepoFields))
+        }
+      } catch (error) {
+        console.error("Failed to fetch saved projects:", error)
+      } finally {
+        setIsLoadingProjects(false)
+      }
     }
-    if (sortBy === 'stars') {
-      return b.stars - a.stars
-    }
-    return a.name.localeCompare(b.name)
-  })
+    fetchSavedProjects()
+  }, [session])
 
-  const stats = {
-    total: mockRepos.length,
-    ready: mockRepos.filter((r) => r.status === 'ready').length,
-    warning: mockRepos.filter((r) => r.status === 'warning').length,
-    critical: mockRepos.filter((r) => r.status === 'critical').length,
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchQuery.length < 2) {
+        setSearchResults([])
+        return
+      }
+
+      try {
+        setIsSearching(true)
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/repos/search?githubId=${session?.user?.id}&query=${searchQuery}`
+        );
+        const data = await res.json()
+
+        if (res.ok) {
+          const sanitized = data.map(extractRepoFields)
+          const filtered = sanitized.filter(
+            (s: GitHubRepo) => !projects.some((p) => p.repoId === s.repoId)
+          )
+          setSearchResults(filtered)
+        }
+      } catch (err) {
+        console.error("Search failed:", err)
+      } finally {
+        setIsSearching(false)
+      }
+    }, 500)
+
+    return () => clearTimeout(delayDebounceFn)
+  }, [searchQuery, session, projects])
+
+  const handleImport = async (repo: GitHubRepo) => {
+    try {
+      setIsImporting(repo.repoId)
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/repos/import`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: session?.user?.id,
+          repoData: repo
+        })
+      })
+
+      if (res.ok) {
+        const newProject = await res.json()
+        setProjects(prev => [extractRepoFields(newProject), ...prev])
+        setSearchQuery('')
+      } else {
+        const errData = await res.json()
+        alert(errData.error || "Import failed")
+      }
+    } catch (error) {
+      console.error("Import failed:", error)
+    } finally {
+      setIsImporting(null)
+    }
   }
 
   return (
-     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border/40 bg-card/50 backdrop-blur-sm">
+    <div className="min-h-screen bg-background pb-20">
+      <div className="border-b border-border/40 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="mx-auto max-w-7xl px-6 py-8">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-balance text-3xl font-bold text-foreground">Repository Audit</h1>
-              <p className="mt-2 text-muted-foreground">
-                Select a repository to analyze its production readiness
-              </p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <FolderKanban className="w-6 h-6 text-primary" />
+              </div>
+              <h1 className="text-2xl font-bold text-foreground">Active Projects</h1>
+            </div>
+
+            <div className="relative w-full md:w-96">
+              <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search your GitHub..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full rounded-xl border border-border bg-background pl-10 pr-4 py-2.5 text-foreground transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+              />
+
+              {/* Search Results Dropdown */}
+              {searchQuery.length >= 2 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-2xl max-h-[400px] overflow-y-auto z-50">
+                  <div className="p-2 border-b border-border bg-muted/30 flex items-center justify-between">
+                    <span className="text-xs font-semibold uppercase text-muted-foreground px-2">GitHub Repositories</span>
+                    {isSearching && <Loader2 className="w-3 h-3 animate-spin mr-2" />}
+                  </div>
+
+                  {searchResults.length === 0 && !isSearching ? (
+                    <div className="p-8 text-center text-sm text-muted-foreground italic">No new repositories found</div>
+                  ) : (
+                    searchResults.map((repo) => (
+                      <div key={repo.repoId} className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors border-b border-border last:border-0">
+                        <div className="flex flex-col min-w-0 pr-4">
+                          <span className="font-semibold text-sm truncate text-foreground">{repo.name}</span>
+                          <span className="text-xs text-muted-foreground">{repo.language || 'Plain Text'}</span>
+                        </div>
+                        <button
+                          onClick={() => handleImport(repo)}
+                          disabled={isImporting === repo.repoId}
+                          className="flex-shrink-0 flex items-center gap-2 bg-primary text-primary-foreground px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
+                        >
+                          {isImporting === repo.repoId ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+                          Add
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-6 py-8">
-        {/* Stats Section */}
-        <DashboardStats stats={stats} />
-
-        {/* Search and Filters */}
-        <div className="mt-8 space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search repositories..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-lg border border-border bg-card pl-10 pr-4 py-2.5 text-foreground placeholder-muted-foreground transition focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-          </div>
-
-          <FilterBar selectedStatus={selectedStatus} onStatusChange={setSelectedStatus} sortBy={sortBy} onSortChange={setSortBy} />
-        </div>
-
-        {/* Results */}
-        <div className="mt-8">
-          <div className="mb-4 flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              Showing <span className="font-semibold text-foreground">{sorted.length}</span> repositories
-            </p>
-          </div>
-
-          {sorted.length === 0 ? (
-            <div className="rounded-lg border border-border bg-card/50 py-12 text-center">
-              <p className="text-muted-foreground">No repositories found matching your criteria.</p>
+      <div className="mx-auto max-w-7xl px-6 mt-12">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {isLoadingProjects ? (
+            Array(3).fill(0).map((_, i) => (
+              <div key={i} className="h-48 rounded-2xl bg-muted animate-pulse" />
+            ))
+          ) : projects.length === 0 ? (
+            <div className="col-span-full border-2 border-dashed border-border rounded-3xl p-20 text-center">
+              <Github className="w-12 h-12 mx-auto text-muted-foreground mb-4 opacity-20" />
+              <h3 className="text-xl font-semibold mb-2">Build your dashboard</h3>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                Search for a repository above to add it to your audit list.
+              </p>
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {sorted.map((repo) => (
-                <RepoCard key={repo.id} repo={repo} />
-              ))}
-            </div>
+            projects.map((repo) => (
+              <RepoCard key={repo.repoId} repo={repo} />
+            ))
           )}
         </div>
       </div>
     </div>
-
-
   )
 }
