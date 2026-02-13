@@ -1,9 +1,36 @@
-import { CheckCircle2, AlertCircle, AlertTriangle, Code2, Calendar, Star } from 'lucide-react'
+'use client'
+
+import { CheckCircle2, AlertCircle, AlertTriangle, Code2, Calendar, Star, BarChart3, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { GitHubRepo } from '@/types/githubRepo'
-
+import { useState } from 'react';
 
 export default function RepoCard({ repo }: { repo: GitHubRepo }) {
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const handleAnalyze = async () => {
+    try {
+      setIsAnalyzing(true);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/repos/analyze/${repo.repoId}`, {
+        method: 'POST'
+      });
+
+      if (res.ok) {
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Analysis trigger failed:", error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+  const getStatus = (score: number) => {
+    if (score >= 80) return 'ready'
+    if (score >= 50) return 'warning'
+    return 'critical'
+  }
+
+  const currentStatus = getStatus(repo.productionScore || 0)
+
   const statusConfig = {
     ready: {
       icon: CheckCircle2,
@@ -25,60 +52,80 @@ export default function RepoCard({ repo }: { repo: GitHubRepo }) {
     },
   }
 
-  /* const status = statusConfig[repo.status]
-  const StatusIcon = status.icon */
+  const status = statusConfig[currentStatus]
+  const StatusIcon = status.icon
+
+  // 2. Format the date (MongoDB date string to readable)
+  const formattedDate = new Date(repo.lastScan || repo.addedAt).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
 
   return (
-    <div className="group relative rounded-lg border border-border bg-card transition hover:border-primary/50 hover:bg-card/80">
+    <div className="group relative rounded-xl border border-border bg-card transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5">
       {/* Status Badge */}
-     {/*  <div className={`absolute right-4 top-4 flex items-center gap-1.5 rounded-full px-3 py-1 ${status.bgColor}`}>
+      <div className={`absolute right-4 top-4 flex items-center gap-1.5 rounded-full px-3 py-1 ${status.bgColor}`}>
         <StatusIcon className={`h-4 w-4 ${status.color}`} />
-        <span className={`text-xs font-medium ${status.color}`}>{status.label}</span>
-      </div> */}
+        <span className={`text-[10px] font-bold uppercase tracking-wider ${status.color}`}>
+          {status.label}
+        </span>
+      </div>
 
       <div className="space-y-4 p-5">
         {/* Header */}
-        <div className="pr-32">
-          <h3 className="text-lg font-semibold text-foreground">{repo.name}</h3>
-          <p className="text-sm text-muted-foreground">{repo.owner}</p>
+        <div className="pr-24">
+          <h3 className="truncate text-lg font-bold text-foreground group-hover:text-primary transition-colors">
+            {repo.name}
+          </h3>
+          <p className="text-xs text-muted-foreground">@{repo.owner}</p>
         </div>
 
         {/* Description */}
-        <p className="line-clamp-2 text-sm text-muted-foreground">{repo.description}</p>
+        <p className="line-clamp-2 h-10 text-sm text-muted-foreground/80">
+          {repo.description || "No description provided for this repository."}
+        </p>
 
         {/* Tech Stack */}
         <div className="flex items-center gap-2">
-          <Code2 className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">{repo.language}</span>
+          <div className="rounded-md bg-muted p-1">
+            <Code2 className="h-3.5 w-3.5 text-primary" />
+          </div>
+          <span className="text-xs font-medium text-muted-foreground">{repo.language}</span>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Coverage</p>
-            <p className="text-lg font-semibold text-foreground">{repo.coverage}%</p>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-3 gap-2 rounded-lg bg-muted/30 p-3">
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] font-medium uppercase text-muted-foreground">Score</span>
+            <span className={`text-sm font-bold ${status.color}`}>{repo.productionScore}%</span>
           </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Issues</p>
-            <p className="text-lg font-semibold text-foreground">{repo.issues}</p>
+          <div className="flex flex-col gap-1 border-x border-border/50 px-2">
+            <span className="text-[10px] font-medium uppercase text-muted-foreground">Stars</span>
+            <div className="flex items-center gap-1">
+              <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
+              <span className="text-sm font-bold text-foreground">{repo.stars}</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Star className="h-4 w-4 text-amber-400" />
-            <p className="text-lg font-semibold text-foreground">{repo.stars}</p>
+          <div className="flex flex-col gap-1 pl-1">
+            <span className="text-[10px] font-medium uppercase text-muted-foreground">Health</span>
+            <span className="text-sm font-bold text-foreground">Good</span>
           </div>
         </div>
 
         {/* Footer */}
         <div className="flex items-center justify-between border-t border-border/50 pt-4">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-medium">
             <Calendar className="h-3.5 w-3.5" />
-            {repo.lastUpdated}
+            <span>Updated {formattedDate}</span>
           </div>
           <Button
-            className="bg-primary text-primary-foreground transition hover:bg-primary/90"
+            onClick={handleAnalyze}
+            disabled={isAnalyzing}
+            className="h-8 px-3 text-xs font-bold transition-all active:scale-95"
             size="sm"
           >
-            Analyze Now
+            {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : "Analyze Now"}
           </Button>
         </div>
       </div>
