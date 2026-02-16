@@ -7,7 +7,7 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { 
   AlertTriangle, Lightbulb, ShieldCheck, Terminal, 
   DollarSign, TrendingUp, ShieldAlert, GitPullRequest, 
-  Loader2, CheckCircle2, ExternalLink 
+  Loader2, CheckCircle2, ExternalLink, Cpu, HardDrive
 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
@@ -52,38 +52,18 @@ export default function ReportView({ report }: { report: any }) {
         <div className="text-xs text-muted-foreground font-mono">
           Scan: {lastUpdated}
         </div>
-        {/* ONE-CLICK PR BUTTON */}
+        {/* Optional PR Button (Uncomment if needed for local testing) */}
         {/* {!prUrl ? (
-          <Button 
-            onClick={handleGeneratePR} 
-            disabled={isDeploying}
-            className="gap-2 bg-primary hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
-          >
-            {isDeploying ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Orchestrating PR...
-              </>
-            ) : (
-              <>
-                <GitPullRequest className="h-4 w-4" />
-                Fix with One-Click PR
-              </>
-            )}
+          <Button onClick={handleGeneratePR} disabled={isDeploying} className="gap-2">
+            {isDeploying ? <Loader2 className="animate-spin h-4 w-4" /> : <GitPullRequest className="h-4 w-4" />}
+            Fix with PR
           </Button>
         ) : (
-          <Button 
-            variant="outline" 
-            className="gap-2 border-emerald-500/50 text-emerald-500 bg-emerald-500/5 hover:bg-emerald-500/10"
-            asChild
-          >
-            <a href={prUrl} target="_blank" rel="noopener noreferrer">
-              <CheckCircle2 className="h-4 w-4" />
-              View PR on GitHub
-              <ExternalLink className="h-3 w-3" />
-            </a>
+          <Button variant="outline" asChild className="text-emerald-500">
+            <a href={prUrl} target="_blank"><CheckCircle2 className="mr-2 h-4 w-4" /> View PR</a>
           </Button>
-        )} */}
+        )} 
+        */}
       </div>
 
       <div className="flex items-center justify-between border-b pb-6">
@@ -101,8 +81,10 @@ export default function ReportView({ report }: { report: any }) {
         </div>
       </div>
 
-      {/* Security Heatmap & Cost Predictor */}
+      {/* Analysis Grid */}
       <div className="grid grid-cols-1 gap-6">
+        
+        {/* DevSecOps Security Guard */}
         <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-5 space-y-4">
           <div className="flex items-center gap-2 text-red-400">
             <ShieldAlert className="h-6 w-6" />
@@ -131,23 +113,49 @@ export default function ReportView({ report }: { report: any }) {
           </div>
         </div>
 
-        <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 space-y-4">
-          <div className="flex items-center gap-2 text-primary">
-            <DollarSign className="h-6 w-6" />
-            <h3 className="font-bold text-lg">Cloud Architect</h3>
+        {/* Cloud Architect & Resource Optimizer Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Cloud Architect (Pricing) */}
+          <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 space-y-4">
+            <div className="flex items-center gap-2 text-primary">
+              <DollarSign className="h-6 w-6" />
+              <h3 className="font-bold text-lg">Cloud Architect</h3>
+            </div>
+            <div className="flex flex-wrap gap-8">
+              <div>
+                <p className="text-xs text-muted-foreground uppercase font-bold">Est. Monthly</p>
+                <p className="text-3xl font-black text-foreground">${report.costAnalysis?.estimatedMonthly || 0}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase font-bold">Tier</p>
+                <p className="text-sm font-semibold">{report.costAnalysis?.tier || 'Hobby'}</p>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground italic leading-tight bg-primary/10 p-3 rounded-lg border-l-2 border-primary">
+              "{report.costAnalysis?.reason}"
+            </p>
           </div>
-          <div className="flex flex-wrap gap-8">
-            <div>
-              <p className="text-xs text-muted-foreground uppercase font-bold">Estimated Monthly</p>
-              <p className="text-3xl font-black text-foreground">${report.costAnalysis?.estimatedMonthly || 0}</p>
+
+          {/* NEW: Cloud Cost Optimizer (Resources) */}
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4 shadow-sm">
+            <div className="flex items-center gap-2 text-emerald-500">
+              <Cpu className="h-6 w-6" />
+              <h3 className="font-bold text-lg">Resource Optimizer</h3>
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground uppercase font-bold">Recommended Tier</p>
-              <p className="text-sm font-semibold">{report.costAnalysis?.tier || 'Hobby'}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-background/40 p-3 rounded-lg border border-emerald-500/10 text-center">
+                <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">CPU Limit</p>
+                <p className="text-lg font-mono font-bold text-emerald-400">{report.resourceOptimizer?.cpuLimit || '0.5 vCPU'}</p>
+              </div>
+              <div className="bg-background/40 p-3 rounded-lg border border-emerald-500/10 text-center">
+                <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">RAM Limit</p>
+                <p className="text-lg font-mono font-bold text-emerald-400">{report.resourceOptimizer?.memoryLimit || '512Mi'}</p>
+              </div>
             </div>
-            <div className="flex-1">
-               <p className="text-xs text-muted-foreground italic leading-tight bg-primary/10 p-3 rounded-lg border-l-2 border-primary">
-                "{report.costAnalysis?.reason}"
+            <div className="flex items-start gap-2 pt-1">
+              <Lightbulb className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
+              <p className="text-[11px] text-muted-foreground leading-snug">
+                {report.resourceOptimizer?.explanation || "Based on the generated Dockerfile, these limits prevent OOM kills while minimizing idle costs."}
               </p>
             </div>
           </div>
