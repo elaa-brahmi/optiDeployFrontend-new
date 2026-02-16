@@ -24,7 +24,6 @@ export default function RepoCard({ repo }: { repo: GitHubRepo }) {
             setReportData(data);
           }
         } catch (error) {
-          console.error("Failed to load existing report:", error);
         } finally {
           setIsLoadingReport(false);
         }
@@ -45,7 +44,6 @@ export default function RepoCard({ repo }: { repo: GitHubRepo }) {
         setReportData(data.report);
       }
     } catch (error) {
-      console.error("Analysis trigger failed:", error);
     } finally {
       setIsAnalyzing(false);
     }

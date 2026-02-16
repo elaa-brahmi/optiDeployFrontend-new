@@ -18,7 +18,6 @@ import { Button } from '@/components/ui/button'
 import { ReportData } from '@/types/ReportData'
 
 export default function ReportView({ initialReport }: { initialReport: ReportData }) {
-  console.log("Initial Report:", initialReport)
   const [isGeneratingIaC, setIsGeneratingIaC] = useState(false)
   const [report, setReport] = useState(initialReport)
   const [selectedCloud, setSelectedCloud] = useState<'aws' | 'azure' | 'gcp'>(() => {
@@ -53,7 +52,6 @@ export default function ReportView({ initialReport }: { initialReport: ReportDat
         }))
       }
     } catch (err) {
-      console.error(err)
       alert("An error occurred while generating IaC files")
     } finally {
       setIsGeneratingIaC(false)

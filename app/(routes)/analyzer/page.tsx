@@ -30,7 +30,6 @@ export default function Dashboard() {
           setProjects(data.map(extractRepoFields))
         }
       } catch (error) {
-        console.error("Failed to fetch saved projects:", error)
       } finally {
         setIsLoadingProjects(false)
       }
@@ -60,7 +59,6 @@ export default function Dashboard() {
           setSearchResults(filtered)
         }
       } catch (err) {
-        console.error("Search failed:", err)
       } finally {
         setIsSearching(false)
       }
@@ -90,7 +88,6 @@ export default function Dashboard() {
         alert(errData.error || "Import failed")
       }
     } catch (error) {
-      console.error("Import failed:", error)
     } finally {
       setIsImporting(null)
     }
