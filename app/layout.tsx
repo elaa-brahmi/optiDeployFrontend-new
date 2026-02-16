@@ -4,6 +4,7 @@ import SessionWrapper from "@/components/SessionWrapper";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import "./globals.css";
+import { Suspense } from "react";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -22,7 +23,9 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased bg-background text-foreground`}>
         <SessionWrapper>
           <div className="relative flex min-h-screen flex-col">
-            <Header />
+            <Suspense fallback={<div className="h-16" />}> 
+          <Header />
+        </Suspense>
             <main className="flex-1">{children}</main>
             <Footer />
           </div>
