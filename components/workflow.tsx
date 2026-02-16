@@ -1,4 +1,5 @@
 import { Check, GitBranch, Zap, CheckCircle2 } from 'lucide-react'
+import Link from 'next/link'
 
 export default function Workflow() {
   const steps = [
@@ -97,7 +98,8 @@ export default function Workflow() {
         {/* Bottom CTA */}
         <div className="mt-16 text-center">
           <button className="inline-flex items-center gap-2 px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition font-semibold">
-            Start Free Scan
+          <Link href="/analyzer" className="flex items-center gap-2">
+            Start Free Scan</Link>
             <ArrowRight size={20} />
           </button>
         </div>

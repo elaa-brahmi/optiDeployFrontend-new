@@ -6,10 +6,11 @@ import { GitHubRepo } from '@/types/githubRepo'
 import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import ReportView from '@/components/dashboard/ReportModal'; 
+import { ReportData } from '@/types/ReportData';
 
 export default function RepoCard({ repo }: { repo: GitHubRepo }) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [reportData, setReportData] = useState<any>(null);
+  const [reportData, setReportData] = useState<ReportData>();
   const [isLoadingReport, setIsLoadingReport] = useState(false);
 
   useEffect(() => {
@@ -152,7 +153,7 @@ export default function RepoCard({ repo }: { repo: GitHubRepo }) {
              {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : "Re-scan Code"}
            </Button>
         </SheetHeader>
-        <ReportView report={reportData} />
+        <ReportView initialReport={reportData} />
       </SheetContent>
     </Sheet>
           ) : (

@@ -1,43 +1,66 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism'
-import { 
-  AlertTriangle, Lightbulb, ShieldCheck, Terminal, 
-  DollarSign, TrendingUp, ShieldAlert, GitPullRequest, 
-  Loader2, CheckCircle2, ExternalLink, Cpu, HardDrive
+import {
+  AlertTriangle, Lightbulb, ShieldCheck, Terminal,
+  DollarSign, TrendingUp, ShieldAlert, GitPullRequest,
+  Loader2, CheckCircle2, ExternalLink, Cpu, HardDrive,
+  Cloud,
+  Info,
+  ListChecks
 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
+import { ReportData } from '@/types/ReportData'
 
-export default function ReportView({ report }: { report: any }) {
-  const [isDeploying, setIsDeploying] = useState(false)
-  const [prUrl, setPrUrl] = useState<string | null>(null)
+export default function ReportView({ initialReport }: { initialReport: ReportData }) {
+  console.log("Initial Report:", initialReport)
+  const [isGeneratingIaC, setIsGeneratingIaC] = useState(false)
+  const [report, setReport] = useState(initialReport)
+  const [selectedCloud, setSelectedCloud] = useState<'aws' | 'azure' | 'gcp'>(() => {
+    if (initialReport.iacConfigurations?.azure?.terraformCode) return 'azure';
+    if (initialReport.iacConfigurations?.gcp?.terraformCode) return 'gcp';
+    return 'aws';
+  });
+  useEffect(() => {
+    setReport(initialReport)
+  }, [initialReport])
 
-  const lastUpdated = new Date(report.updatedAt || report.createdAt).toLocaleString();
+  const lastUpdated = new Date(report.createdAt).toLocaleString();
 
-  const handleGeneratePR = async () => {
-    setIsDeploying(true)
+
+  const handleIaC = async (provider: string) => {
+    setIsGeneratingIaC(true)
+    setSelectedCloud(provider as any)
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/repos/PR/${report.repoId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/repos/iac/generate/${report.repoId}`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider }),
       })
       const data = await res.json()
       if (data.success) {
-        setPrUrl(data.prUrl)
-      } else {
-        alert(data.error || "Failed to create PR")
+        setReport(prev => ({
+          ...prev,
+          iacConfigurations: {
+            ...prev.iacConfigurations,
+            [provider]: data.iac
+          }
+        }))
       }
     } catch (err) {
       console.error(err)
-      alert("An error occurred while creating the PR")
+      alert("An error occurred while generating IaC files")
     } finally {
-      setIsDeploying(false)
+      setIsGeneratingIaC(false)
     }
   }
+
+  const currentIaC = report.iacConfigurations?.[selectedCloud];
 
   const getScoreColor = (score: number) => {
     if (score >= 8) return 'bg-emerald-500'
@@ -52,25 +75,15 @@ export default function ReportView({ report }: { report: any }) {
         <div className="text-xs text-muted-foreground font-mono">
           Scan: {lastUpdated}
         </div>
-        {/* Optional PR Button (Uncomment if needed for local testing) */}
-        {/* {!prUrl ? (
-          <Button onClick={handleGeneratePR} disabled={isDeploying} className="gap-2">
-            {isDeploying ? <Loader2 className="animate-spin h-4 w-4" /> : <GitPullRequest className="h-4 w-4" />}
-            Fix with PR
-          </Button>
-        ) : (
-          <Button variant="outline" asChild className="text-emerald-500">
-            <a href={prUrl} target="_blank"><CheckCircle2 className="mr-2 h-4 w-4" /> View PR</a>
-          </Button>
-        )} 
-        */}
+
+
       </div>
 
       <div className="flex items-center justify-between border-b pb-6">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Audit Report</h2>
           <p className="text-muted-foreground flex items-center gap-2">
-             Environment: <span className="text-primary font-semibold">{report.language}</span>
+            Environment: <span className="text-primary font-semibold">{report.language}</span>
           </p>
         </div>
         <div className="text-right">
@@ -83,14 +96,14 @@ export default function ReportView({ report }: { report: any }) {
 
       {/* Analysis Grid */}
       <div className="grid grid-cols-1 gap-6">
-        
+
         {/* DevSecOps Security Guard */}
         <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-5 space-y-4">
           <div className="flex items-center gap-2 text-red-400">
             <ShieldAlert className="h-6 w-6" />
             <h3 className="font-bold text-lg">DevSecOps Security Guard</h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {Object.entries(report.securityHeatmap || {}).map(([key, value]: [string, any]) => (
               <div key={key} className="space-y-2">
@@ -104,17 +117,17 @@ export default function ReportView({ report }: { report: any }) {
           </div>
 
           <div className="mt-4 border-t border-red-500/10 pt-4">
-             <h4 className="text-xs font-bold uppercase text-red-400 mb-2">Active Vulnerabilities</h4>
-             <ul className="list-inside list-disc text-sm space-y-1 text-muted-foreground">
-                {report.securityAlerts.map((alert: string, i: number) => (
-                  <li key={i}>{alert}</li>
-                ))}
-             </ul>
+            <h4 className="text-xs font-bold uppercase text-red-400 mb-2">Active Vulnerabilities</h4>
+            <ul className="list-inside list-disc text-sm space-y-1 text-muted-foreground">
+              {report.securityAlerts.map((alert: string, i: number) => (
+                <li key={i}>{alert}</li>
+              ))}
+            </ul>
           </div>
         </div>
 
         {/* Cloud Architect & Resource Optimizer Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1  gap-6">
           {/* Cloud Architect (Pricing) */}
           <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 space-y-4">
             <div className="flex items-center gap-2 text-primary">
@@ -181,8 +194,8 @@ export default function ReportView({ report }: { report: any }) {
       {/* Code Generation Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-            <h3 className="flex items-center gap-2 font-bold"><Terminal className="h-4 w-4 text-primary" /> Infrastructure as Code</h3>
-            <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded uppercase font-bold">AI Generated</span>
+          <h3 className="flex items-center gap-2 font-bold"><Terminal className="h-4 w-4 text-primary" /> Infrastructure as Code</h3>
+          <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded uppercase font-bold">AI Generated</span>
         </div>
         <Tabs defaultValue="docker" className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-muted/50">
@@ -200,6 +213,102 @@ export default function ReportView({ report }: { report: any }) {
             </SyntaxHighlighter>
           </TabsContent>
         </Tabs>
+      </div>
+      <div className="space-y-6 pb-10">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h3 className="flex items-center gap-2 font-bold text-xl text-blue-400">
+              <Cloud className="h-5 w-5" /> Cloud Infrastructure Engine
+            </h3>
+            <p className="text-sm text-muted-foreground">Select a provider to generate environment-specific Terraform code.</p>
+          </div>
+
+          <div className="flex gap-2 p-1 bg-muted/50 rounded-lg border w-fit">
+            {(['aws', 'azure', 'gcp'] as const).map((provider) => (
+              <Button
+                key={provider}
+                onClick={() => handleIaC(provider)}
+                variant={selectedCloud === provider ? 'default' : 'ghost'}
+                size="sm"
+                className={`text-xs h-8 uppercase font-bold transition-all ${selectedCloud === provider ? 'bg-blue-600' : ''}`}
+                disabled={isGeneratingIaC}
+              >
+                {provider}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {isGeneratingIaC ? (
+          <div className="h-64 flex flex-col items-center justify-center space-y-4 rounded-xl border border-dashed border-blue-500/30 bg-blue-500/5">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
+            <p className="text-sm text-blue-300 font-mono animate-pulse">Architecting {selectedCloud.toUpperCase()} resources...</p>
+          </div>
+        ) : currentIaC ? (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            {/* Architecture Detail Cards */}
+            {/* --- IaC Content Display --- */}
+            <div className="grid grid-cols-1  gap-6">
+              {/* Architectural Explanation Card */}
+              <div className="md:col-span-2 rounded-xl border border-blue-500/20 bg-blue-500/5 p-5 space-y-3">
+                <h4 className="text-sm font-bold flex items-center gap-2 text-blue-400 italic">
+                  <Info className="h-4 w-4" /> Architectural Explanation
+                </h4>
+                {/* Using ReactMarkdown to render the bold text and lists properly */}
+                <div className="text-sm text-muted-foreground leading-relaxed prose prose-invert prose-blue max-w-none">
+                  <ReactMarkdown>{currentIaC.explanation}</ReactMarkdown>
+                </div>
+
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {currentIaC.cloudResources?.map((res: string, i: number) => (
+                    <span key={i} className="text-[10px] px-2 py-1 rounded bg-blue-500/20 text-blue-400 border border-blue-500/20 font-mono uppercase">
+                      {res}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Deployment Guide Card */}
+              <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-5 space-y-4">
+                <h4 className="text-sm font-bold flex items-center gap-2 text-blue-400">
+                  <ListChecks className="h-4 w-4" /> Deployment Guide
+                </h4>
+                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                  {/* Since your data shows deploymentSteps is an array containing ONE long string, 
+         we map through the array but render each item as Markdown.
+      */}
+                  {currentIaC.deploymentSteps?.map((step: string, i: number) => (
+                    <div key={i} className="relative pl-2 border-l-2 border-blue-500/30">
+                      <div className="text-xs text-muted-foreground prose prose-invert prose-sm prose-blue">
+                        <ReactMarkdown>{step}</ReactMarkdown>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Code Block */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-2">
+                <h4 className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-2 tracking-widest">
+                  <Terminal className="h-3 w-3" /> main.tf (HCL)
+                </h4>
+                <span className="text-[10px] text-blue-500 font-mono">terraform_version: `{'>'}` 1.0</span>
+              </div>
+              <div className="rounded-xl overflow-hidden ring-1 ring-blue-500/30 shadow-2xl shadow-blue-500/5">
+                <SyntaxHighlighter language="hcl" style={vscDarkPlus} customStyle={{ margin: 0, padding: '1.5rem', fontSize: '12px', lineHeight: '1.6' }}>
+                  {currentIaC.terraformCode}
+                </SyntaxHighlighter>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="h-48 flex flex-col items-center justify-center rounded-xl border border-dashed border-muted bg-muted/10">
+            <Cloud className="h-10 w-10 text-muted-foreground mb-2 opacity-20" />
+            <p className="text-sm text-muted-foreground italic">Ready to provision cloud resources.</p>
+          </div>
+        )}
       </div>
     </div>
   )
