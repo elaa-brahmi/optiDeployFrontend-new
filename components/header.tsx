@@ -51,10 +51,10 @@ export default function Header() {
             </button>
           ) : (
             <div className="flex items-center gap-4">
-               <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition flex items-center gap-2">
+               {/* <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition flex items-center gap-2">
                 <LayoutDashboard size={18} />
                 Dashboard
-              </Link>
+              </Link> */}
               <div className="w-px h-6 bg-border" />
               <button 
                 onClick={() => signOut({ callbackUrl: '/' })}
