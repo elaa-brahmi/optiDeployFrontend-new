@@ -20,22 +20,29 @@ export default function Dashboard() {
   const [isImporting, setIsImporting] = useState<number | null>(null)
 
   useEffect(() => {
-    const fetchSavedProjects = async () => {
-      if (!session?.user?.id) return
-      try {
-        setIsLoadingProjects(true)
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/repos/projects/${session.user.id}`)
-        if (res.ok) {
-          const data = await res.json()
-          setProjects(data.map(extractRepoFields))
-        }
-      } catch (error) {
-      } finally {
-        setIsLoadingProjects(false)
-      }
+  const fetchSavedProjects = async () => {
+    if (!session?.user?.id) return;
+
+    
+    if (projects.length === 0) {
+      setIsLoadingProjects(true);
     }
-    fetchSavedProjects()
-  }, [session])
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/repos/projects/${session.user.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setProjects(data.map(extractRepoFields));
+      }
+    } catch (error) {
+      console.error("Failed to fetch:", error);
+    } finally {
+      setIsLoadingProjects(false);
+    }
+  };
+
+  fetchSavedProjects();
+}, [session?.user?.id]);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
