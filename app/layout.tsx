@@ -5,7 +5,7 @@ import Header from "@/components/header";
 import Footer from "@/components/footer";
 import "./globals.css";
 import { Suspense } from "react";
-
+import { Toaster } from 'sonner';
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
@@ -26,7 +26,9 @@ export default function RootLayout({
             <Suspense fallback={<div className="h-16" />}> 
           <Header />
         </Suspense>
-            <main className="flex-1">{children}</main>
+            <main className="flex-1">{children}
+              <Toaster richColors theme="dark" position="top-right" />
+            </main>
             <Footer />
           </div>
         </SessionWrapper>

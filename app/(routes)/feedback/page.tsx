@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { feedbackService } from '../../../utils/feedback';
 import { Feedback } from '../../../types/feedback';
 import { useSession } from 'next-auth/react'; 
+import { toast } from 'sonner';
 
 const FeedbackPage = () => {
   const { data: session } = useSession();
@@ -29,25 +30,27 @@ const FeedbackPage = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!message.trim() || !githubId) return;
+  e.preventDefault();
+  if (!message.trim() || !githubId) return;
 
-    setLoading(true);
-    try {
-      await feedbackService.sendFeedback(githubId, { message });
+  setLoading(true);
+
+  toast.promise(feedbackService.sendFeedback(githubId, { message }), {
+    loading: 'Sending your insight to the team...',
+    success: () => {
       setMessage('');
-      await loadHistory(); // Refresh the list
-      alert("Insight received! Thanks for helping us ameliorate optiDeploy.");
-    } catch (err) {
-      alert("Failed to send feedback. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+      loadHistory(); 
+      return "Insight received! Thanks for helping us ameliorate optiDeploy.";
+    },
+    error: "Failed to send feedback. Please try again.",
+  });
+
+  setLoading(false);
+};
 
   return (
     <div className="max-w-4xl mx-auto p-6 my-20 text-white bg-slate-900 rounded-xl">
-      <h1 className="text-2xl font-bold mb-2">Help us ameliorate optiDeploy 🚀</h1>
+      <h1 className="text-2xl font-bold mb-2">Help us ameliorate optiDeploy </h1>
       <p className="text-slate-400 mb-6">Share your insights, suggest features, or report bugs.</p>
 
       <form onSubmit={handleSubmit} className="space-y-4 mb-10">
