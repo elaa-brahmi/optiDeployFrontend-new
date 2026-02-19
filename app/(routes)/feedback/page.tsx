@@ -12,7 +12,6 @@ const FeedbackPage = () => {
   const [loading, setLoading] = useState(false);
 
   const githubId = session?.user?.id; 
-  console.log("GitHub ID from session:", githubId);
 
   useEffect(() => {
     if (githubId) {
