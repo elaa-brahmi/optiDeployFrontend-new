@@ -31,7 +31,7 @@ export default function Hero() {
                 <Link href="/analyzer">Connect GitHub</Link>
               </button>
               <button className="flex items-center justify-center gap-2 px-8 py-3 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition font-semibold">
-                Watch Demo
+              <Link href="/feedback">Provide Feedback</Link>
                 <ArrowRight size={20} />
               </button>
             </div>

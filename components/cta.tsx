@@ -21,7 +21,8 @@ export default function CTA() {
             <ArrowRight size={22} />
           </button>
           <button className="flex items-center justify-center gap-2 px-8 py-4 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition font-semibold text-lg">
-            Schedule a Demo
+          <Link href="/feedback">
+           provide feedback</Link>
           </button>
         </div>
 
