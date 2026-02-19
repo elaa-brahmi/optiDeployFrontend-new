@@ -8,7 +8,8 @@ export async function middleware(req: NextRequest) {
   
   const isProtectedPage = 
     req.nextUrl.pathname.startsWith("/analyzer") || 
-    req.nextUrl.pathname.startsWith("/dashboard");
+    req.nextUrl.pathname.startsWith("/dashboard") || 
+    req.nextUrl.pathname.startsWith("/feedback");
 
   if (isProtectedPage && !token) {
     const url = new URL("/", req.url);
@@ -19,5 +20,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/analyzer/:path*", "/dashboard/:path*"],
+  matcher: ["/analyzer/:path*", "/dashboard/:path*", "/feedback/:path*"],
 };
