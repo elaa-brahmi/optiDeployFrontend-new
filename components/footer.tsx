@@ -106,7 +106,7 @@ export default function Footer() {
         {/* Bottom footer */}
         <div className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © 2024 Deployment Copilot. All rights reserved.
+            © 2026 Deployment Copilot. All rights reserved.
           </p>
 
           <div className="flex items-center gap-4">
