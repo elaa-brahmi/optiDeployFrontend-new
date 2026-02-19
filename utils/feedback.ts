@@ -1,10 +1,10 @@
 import { Feedback, FeedbackRequest } from '../types/feedback';
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000/api/feedback';
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export const feedbackService = {
   sendFeedback: async (githubId: string, data: FeedbackRequest): Promise<void> => {
-    const response = await fetch(`${API_URL}/${githubId}`, {
+    const response = await fetch(`${API_URL}/api/feedback/${githubId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -19,7 +19,7 @@ export const feedbackService = {
   },
 
   getUserFeedback: async (githubId: string): Promise<Feedback[]> => {
-    const response = await fetch(`${API_URL}/${githubId}`, {
+    const response = await fetch(`${API_URL}/api/feedback/${githubId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
