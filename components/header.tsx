@@ -83,7 +83,7 @@ export default function Header() {
                 </button>
               ) : (
                 <>
-                  <Link href="/dashboard" className="flex items-center gap-2 py-2">Dashboard</Link>
+                  
                   <button 
                     onClick={() => signOut()}
                     className="w-full px-6 py-2 bg-destructive text-destructive-foreground rounded-lg"
