@@ -42,13 +42,22 @@ export default function Header() {
           </Link>
 
           {!session ? (
-            <button 
-              onClick={() => signIn("github", { callbackUrl })}
-              disabled={isLoading}
-              className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition font-medium disabled:opacity-50"
-            >
-              {isLoading ? "Connecting..." : "Get Started"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => signIn("github", { callbackUrl })}
+                disabled={isLoading}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition font-medium disabled:opacity-50"
+              >
+                {isLoading ? "Connecting..." : "GitHub"}
+              </button>
+              <button
+                onClick={() => signIn("google", { callbackUrl })}
+                disabled={isLoading}
+                className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition font-medium disabled:opacity-50"
+              >
+                Google
+              </button>
+            </div>
           ) : (
             <div className="flex items-center gap-4">
                {/* <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition flex items-center gap-2">
@@ -75,12 +84,22 @@ export default function Header() {
               <Link href="/#features" className="text-muted-foreground">Features</Link>
               
               {!session ? (
-                <button 
-                  onClick={() => signIn('github')}
-                  className="w-full px-6 py-2 bg-primary text-primary-foreground rounded-lg"
-                >
-                  Get Started
-                </button>
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => signIn('github', { callbackUrl })}
+                    disabled={isLoading}
+                    className="w-full px-6 py-2 bg-primary text-primary-foreground rounded-lg disabled:opacity-50"
+                  >
+                    Continue with GitHub
+                  </button>
+                  <button
+                    onClick={() => signIn('google', { callbackUrl })}
+                    disabled={isLoading}
+                    className="w-full px-6 py-2 bg-secondary text-secondary-foreground rounded-lg disabled:opacity-50"
+                  >
+                    Continue with Google
+                  </button>
+                </div>
               ) : (
                 <>
                   
