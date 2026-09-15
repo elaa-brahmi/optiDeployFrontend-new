@@ -57,7 +57,6 @@ export default function ReportView({ initialReport }: { initialReport: ReportDat
       setIsGeneratingIaC(false)
     }
   }
-
   const currentIaC = report.iacConfigurations?.[selectedCloud];
 
   const getScoreColor = (score: number) => {
