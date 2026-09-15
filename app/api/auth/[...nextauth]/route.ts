@@ -20,13 +20,18 @@ const handler = NextAuth({
   callbacks: {
     async jwt({ token, user, profile, account }) {
       if (account && profile) {
-        // 'profile.id' is the GitHub Numerical ID 
-        token.githubId = profile.id.toString();
+        const providerUserId = profile.id ?? profile.sub ?? user?.id;
+
+        if (providerUserId) {
+          token.userId = providerUserId.toString();
+        }
       }
       return token;
     },
     async session({ session, token }: any) {
-      session.user.id = token.githubId;
+      if (session.user && token.userId) {
+        session.user.id = token.userId;
+      }
       return session
     },
     async signIn({ user, account }: any) {
